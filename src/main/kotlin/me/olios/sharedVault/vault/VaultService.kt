@@ -30,4 +30,26 @@ class VaultService(private val manager: VaultManager) {
         manager.registerVault(updatedVault.apply { isDirty = false })
         // TODO: Refresh open GUIs for players
     }
+
+    /**
+     * Called by the GuiListener whenever a slot is modified.
+     */
+    fun handleSlotUpdate(vaultId: String, slot: Int, newItem: ItemStack?, updater: UUID) {
+        val vault = manager.getOrLoadVault(vaultId)
+
+        // Only update if the item actually changed
+        if (vault.items[slot] == newItem) return
+
+        vault.items[slot] = newItem
+        vault.version++
+        vault.lastUpdatedBy = updater
+        vault.lastUpdatedAt = System.currentTimeMillis()
+        vault.isDirty = true
+
+        // Debug log
+        // println("Vault ${vault.id} updated slot $slot. New Version: ${vault.version}")
+
+        // FUTURE: redisPublisher.publishUpdate(vaultId)
+        // FUTURE: saveDebouncer.schedule(vaultId)
+    }
 }

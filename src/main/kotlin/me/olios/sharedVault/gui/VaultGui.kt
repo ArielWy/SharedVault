@@ -8,7 +8,7 @@ import org.bukkit.inventory.Inventory
 class VaultGui(private val state: VaultState) {
 
     fun createInventory(): Inventory {
-        val inv = Bukkit.createInventory(null, state.size, "Vault: ${state.id}")
+        val inv = Bukkit.createInventory(VaultHolder(state.id), state.size, "Vault: ${state.id}")
         inv.contents = state.items
         return inv
     }
