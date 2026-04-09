@@ -1,11 +1,14 @@
 package me.olios.sharedVault.commands
 
 import me.olios.sharedVault.gui.VaultGui
+import me.olios.sharedVault.serialization.ItemSerializer
 import me.olios.sharedVault.vault.VaultManager
+import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 
 class VaultCommand(private val vaultManager: VaultManager): CommandExecutor {
     override fun onCommand(
@@ -32,6 +35,8 @@ class VaultCommand(private val vaultManager: VaultManager): CommandExecutor {
             return true
         }
 
+        // testing serializer
+        // if (handleVaultTest(sender, vaultId, vaultSize)) return true
 
         // get vault from manager
         val vaultState = vaultManager.getOrLoadVault(vaultId, vaultSize)
@@ -41,6 +46,33 @@ class VaultCommand(private val vaultManager: VaultManager): CommandExecutor {
         gui.open(sender)
 
         sender.sendMessage("§aOpening vault: §f$vaultId")
+        return true
+    }
+
+    private var testItemStorage: String = ""
+
+    fun handleVaultTest(sender: Player, vaultId: String, vaultSize: Int): Boolean {
+        if (vaultId != "item") return false
+
+        if (vaultSize == 9) {
+            val item = sender.inventory.itemInMainHand
+
+            // Save to the class-level variable, not a local one
+            testItemStorage = ItemSerializer.toBase64(item)
+
+            sender.sendMessage("§aItem serialized and saved to memory!")
+            println("Serialized: $testItemStorage")
+        }
+        else if (vaultSize == 18) {
+            if (testItemStorage.isEmpty()) {
+                sender.sendMessage("§cNothing is saved in memory yet! Use size 9 first.")
+                return true
+            }
+
+            val item = ItemSerializer.fromBase64(testItemStorage) ?: ItemStack(Material.AIR)
+            sender.inventory.addItem(item)
+            sender.sendMessage("§aItem deserialized and given!")
+        }
         return true
     }
 }
