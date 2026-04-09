@@ -1,0 +1,22 @@
+name: SharedVault
+version: '${version}'
+
+main: me.olios.sharedVault.SharedVault
+api-version: '26.1.1'
+load: POSTWORLD
+
+authors: [ olios ]
+
+commands:
+  vault:
+    aliases:
+      - sharedvault
+      - sv
+    description: open the shared vault GUI
+    usage: /vault <ID>
+    permission: SharedVault.use
+
+permissions:
+  SharedVault.use:
+    description: Allows the player to use the /vault command
+    default: true
