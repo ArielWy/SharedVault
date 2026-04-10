@@ -1,0 +1,66 @@
+# ============================
+#  SharedVault - Messages
+#  MiniMessage format
+# ============================
+
+general:
+  only_players: "<red>Only players can use this command." # USED
+  no_permission: "<red>You don't have permission to do that." # USED
+  unknown_command: "<red>Unknown command."
+  reloading: "<yellow>Reloading configuration..."
+  reloaded: "<green>Configuration reloaded."
+
+vault:
+  open: "<green>Opening vault: <white>%VAULT%"  # USED
+  not_found: "<red>Vault <white>%VAULT%<red> does not exist."
+  no_permission: "<red>You don't have permission to open this vault."
+  locked: "<red>This vault is currently being edited by another server. Try again in a moment."
+  size_invalid: "<red>Vault size must be <white>9, 18, 27, 36, 45, or 54<red>." # USED
+  created: "<green>Vault <white>%VAULT%<green> created successfully."
+  deleted: "<green>Vault <white>%VAULT%<green> deleted successfully."
+  saved: "<green>Vault saved."
+  autosave: "<gray>Autosaving vaults..."
+  already_open: "<red>You already have a vault open."
+
+slot:
+  updated: "<green>Updated slot <white><slot><green>."
+  empty: "<yellow>That slot is empty."
+  cannot_modify: "<red>You cannot modify this slot."
+
+sync:
+  receiving_update: "<gray>Received update for vault <white>%VAULT%<gray> (slot <white><slot><gray>)."
+  pushing_update: "<gray>Pushing update to other servers..."
+  version_conflict: "<red>Version conflict detected. Reloading vault..."
+
+errors:
+  redis_not_connected: "<red>Redis is not connected. Cross-server sync disabled."
+  mysql_not_connected: "<red>MySQL is not connected. Data saving disabled."
+  load_failed: "<red>Failed to load vault <white>%VAULT%<red>."
+  save_failed: "<red>Failed to save vault <white>%VAULT%<red>."
+  unexpected: "<red>An unexpected error occurred. Check console."
+
+commands:
+  help_header: "<gold>--- <yellow>SharedVault Commands <gold>---"
+  help_open: "<yellow>/vault open %VAULT% <gray>- Open a vault"
+  help_create: "<yellow>/vault create %VAULT% <size> <gray>- Create a new vault"
+  help_delete: "<yellow>/vault delete %VAULT% <gray>- Delete a vault"
+  help_reload: "<yellow>/vault reload <gray>- Reload configuration"
+  help_list: "<yellow>/vault list <gray>- List all vaults"
+
+list:
+  header: "<gold>--- <yellow>Available Vaults <gold>---"
+  entry: "<gray>- <white>%VAULT%"
+  none: "<red>No vaults found."
+
+gui:
+  title: "<gold>Vault <white>%VAULT%"
+  locked_title: "<red>Vault Locked"
+  locked_lore: "<gray>This vault is currently being edited."
+  loading_title: "<yellow>Loading..."
+  loading_lore: "<gray>Please wait."
+
+debug:
+  redis_connected: "<green>Connected to Redis at <white><host>:<port>"
+  redis_disconnected: "<red>Redis connection lost."
+  mysql_connected: "<green>Connected to MySQL."
+  mysql_disconnected: "<red>MySQL connection lost."

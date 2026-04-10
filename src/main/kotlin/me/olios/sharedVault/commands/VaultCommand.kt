@@ -3,6 +3,7 @@ package me.olios.sharedVault.commands
 import me.olios.sharedVault.gui.VaultGui
 import me.olios.sharedVault.serialization.ItemSerializer
 import me.olios.sharedVault.vault.VaultManager
+import me.olios.sharedVault.config.MessagesConfig
 import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
@@ -11,6 +12,8 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
 class VaultCommand(private val vaultManager: VaultManager): CommandExecutor {
+
+    private val messages = MessagesConfig
     override fun onCommand(
         sender: CommandSender,
         p1: Command,
@@ -18,12 +21,12 @@ class VaultCommand(private val vaultManager: VaultManager): CommandExecutor {
         p3: Array<out String>
     ): Boolean {
         if (sender !is Player) { // check for player
-            sender.sendMessage("§cOnly players can use this command!")
+            messages.send(sender, "general.only_players")
             return true
         }
 
         if (!sender.hasPermission("sharedvault.use")) { // permission check
-            sender.sendMessage("§cYou don't have permission to open the vault.")
+            messages.send(sender, "general.no_permission")
             return true
         }
 
@@ -31,7 +34,7 @@ class VaultCommand(private val vaultManager: VaultManager): CommandExecutor {
         val vaultSize = if (p3.size > 1) p3[1].toInt() else 54 // determine vault size (default 54)
 
         if (vaultSize !in 9..54 || vaultSize % 9 != 0) {
-            sender.sendMessage("§cVault size must be 9, 18, 27, 36, 45, or 54.")
+            messages.send(sender, "vault.size_invalid")
             return true
         }
 
@@ -45,7 +48,7 @@ class VaultCommand(private val vaultManager: VaultManager): CommandExecutor {
         val gui = VaultGui(vaultState)
         gui.open(sender)
 
-        sender.sendMessage("§aOpening vault: §f$vaultId")
+        messages.send(sender, "vault.open", mapOf("VAULT" to vaultId))
         return true
     }
 
