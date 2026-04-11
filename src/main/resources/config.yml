@@ -1,0 +1,47 @@
+# ==========================================
+# SharedVault - Main Configuration
+# ==========================================
+
+# -------------------------
+# Redis (real-time sync)
+# -------------------------
+redis:
+  host: "127.0.0.1"
+  port: 6379
+  password: ""        # leave empty if no password
+  channel: "sharedvault:updates"   # pub/sub channel for cross-server sync
+
+# -------------------------
+# MySQL (persistent storage)
+# -------------------------
+database:
+  host: "127.0.0.1"
+  port: 3306
+  name: "sharedvault"
+  user: "root"
+  password: ""
+  pool-size: 10
+
+# -------------------------
+# Vault Settings
+# -------------------------
+vault:
+  allowed-sizes: [9, 18, 27, 36, 45, 54]
+  autosave-interval: 300   # seconds (5 minutes)
+  lock-timeout: 5000       # ms - how long a vault lock lasts before force release
+
+# -------------------------
+# Sync Settings
+# -------------------------
+sync:
+  enabled: true
+  update-delay: 0          # ms - delay before pushing slot updates (0 = instant)
+  load-on-join: false      # load a default vault when player joins (optional)
+
+# -------------------------
+# Debug
+# -------------------------
+debug:
+  redis: false
+  mysql: false
+  sync: false

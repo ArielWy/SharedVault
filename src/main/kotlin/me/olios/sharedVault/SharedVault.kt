@@ -2,6 +2,7 @@ package me.olios.sharedVault
 
 import me.olios.sharedVault.cache.VaultCache
 import me.olios.sharedVault.commands.VaultCommand
+import me.olios.sharedVault.config.ConfigManager
 import me.olios.sharedVault.config.MessagesConfig
 import me.olios.sharedVault.gui.GuiListener
 import me.olios.sharedVault.vault.VaultManager
@@ -16,6 +17,7 @@ class SharedVault : JavaPlugin() {
 
     override fun onEnable() {
         MessagesConfig.init(this)
+        ConfigManager.init(this)
 
         registerCommands()
         registerListeners()
