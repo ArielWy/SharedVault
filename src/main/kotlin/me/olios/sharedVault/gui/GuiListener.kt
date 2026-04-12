@@ -1,18 +1,24 @@
 package me.olios.sharedVault.gui
 
+import me.olios.sharedVault.vault.VaultManager
 import me.olios.sharedVault.vault.VaultService
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryDragEvent
+import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.inventory.InventoryHolder
 
 class VaultHolder(val vaultId: String) : InventoryHolder {
     override fun getInventory() = null!! // allow it to now if it's a sharedvault.
 }
 
-class GuiListener(private val vaultService: VaultService): Listener {
+class GuiListener(
+    private val vaultService: VaultService,
+    private val manager: VaultManager
+): Listener {
 
     @EventHandler
     fun onInventoryClick(event: InventoryClickEvent) {
@@ -50,5 +56,19 @@ class GuiListener(private val vaultService: VaultService): Listener {
                 }
             }
         })
+    }
+
+    @EventHandler
+    fun onInventoryOpen(event: InventoryOpenEvent) {
+        val holder = event.inventory.holder as? VaultHolder ?: return
+        val vault = manager.getOrLoadVault(holder.vaultId)
+        vault.viewers.add(event.player.uniqueId)
+    }
+
+    @EventHandler
+    fun onInventoryClose(event: InventoryCloseEvent) {
+        val holder = event.inventory.holder as? VaultHolder ?: return
+        val vault = manager.getOrLoadVault(holder.vaultId)
+        vault.viewers.remove(event.player.uniqueId)
     }
 }

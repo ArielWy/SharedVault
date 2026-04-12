@@ -22,8 +22,7 @@ object MessagesConfig {
     }
 
     fun get(path: String, placeholders: Map<String, String> = emptyMap()): Component {
-        val messagePath = "messages.$path"
-        val raw = messages.getString(messagePath) ?: "<red>Missing message: $messagePath"
+        val raw = messages.getString(path) ?: "<red>Missing message: $path"
         val replaced = applyPlaceholders(raw, placeholders)
         return mm.deserialize(replaced)
     }

@@ -1,34 +1,39 @@
 package me.olios.sharedVault.vault
 
+import me.olios.sharedVault.cache.VaultCache
+import me.olios.sharedVault.gui.VaultGui
+import me.olios.sharedVault.gui.VaultHolder
+import me.olios.sharedVault.storage.RedisStorage
+import me.olios.sharedVault.sync.RedisPublisher
+import org.bukkit.Bukkit
+import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
 
-class VaultService(private val manager: VaultManager) {
-
-    /**
-     * The primary way to modify a vault.
-     * Handles versioning and dirty flags automatically.
-     */
-    fun updateSlot(vaultId: String, slot: Int, newItem: ItemStack?, updater: UUID) {
-        val vault = manager.getOrLoadVault(vaultId)
-
-        vault.items[slot] = newItem
-        vault.version++
-        vault.lastUpdatedBy = updater
-        vault.lastUpdatedAt = System.currentTimeMillis()
-        vault.isDirty = true
-
-        // TODO: triggerSync() -> Redis Publisher
-        // TODO: scheduleSave() -> MySQL Debouncer
-    }
+class VaultService(
+    private val manager: VaultManager,
+    private val redisStorage: RedisStorage,
+    private val redisPublisher: RedisPublisher) {
 
     /**
      * Used when an update comes from ANOTHER server via Redis.
-     * We don't mark it dirty because it's already saved elsewhere.
+     * don't mark it dirty because it's already saved elsewhere.
      */
-    fun handleExternalUpdate(updatedVault: VaultState) {
-        manager.registerVault(updatedVault.apply { isDirty = false })
-        // TODO: Refresh open GUIs for players
+    fun handleExternalSlotUpdate(vaultId: String, slot: Int, remoteVersion: Int) {
+        val vault = manager.getVaultFromCache(vaultId) ?: return
+
+        // only update if the remote version is newer
+        if (remoteVersion <= vault.version) return
+
+        // fetch only the specific slot from Redis
+        val newItem = redisStorage.loadSingleSlot(vaultId, slot)
+
+        // Update local state
+        vault.items[slot] = newItem
+        vault.version = remoteVersion
+
+        // Refresh GUI for all active viewers on THIS server
+        refreshViewers(vault, slot, newItem)
     }
 
     /**
@@ -49,7 +54,23 @@ class VaultService(private val manager: VaultManager) {
         // Debug log
         // println("Vault ${vault.id} updated slot $slot. New Version: ${vault.version}")
 
-        // FUTURE: redisPublisher.publishUpdate(vaultId)
+        // push to redis storage
+        redisStorage.updateSlot(vaultId, slot, newItem, vault.version, updater)
+
+        // notify other servers via Pub/Sub
+        redisPublisher.publishSlotUpdate(vaultId, slot, vault.version)
+
         // FUTURE: saveDebouncer.schedule(vaultId)
+    }
+
+    private fun refreshViewers(vault: VaultState, slot: Int, newItem: ItemStack?) {
+        val gui = VaultGui(vault) // Create a temporary view controller
+
+        vault.viewers.forEach { uuid ->
+            val player = Bukkit.getPlayer(uuid)
+            if (player != null) {
+                gui.refreshSlot(player, slot, newItem)
+            }
+        }
     }
 }

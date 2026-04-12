@@ -92,4 +92,15 @@ class RedisStorage(
         async.hset(redisKey, "lastUpdatedBy", lastUpdatedBy?.toString() ?: "")
         async.hset(redisKey, "lastUpdatedAt", System.currentTimeMillis().toString())
     }
+
+    fun loadSingleSlot(vaultId: String, slot: Int): ItemStack? {
+        val base64 = connection.sync().hget(key(vaultId), "slot:$slot")
+        return ItemSerializer.fromBase64(base64)
+    }
+
+    fun getStoredSize(vaultId: String): Int? {
+        val data = async.hgetall(key(vaultId)).get()
+        val sizeStr = data["size"] ?: return null
+        return sizeStr.toIntOrNull()
+    }
 }

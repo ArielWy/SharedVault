@@ -10,7 +10,8 @@ data class VaultState(
     var lastUpdatedBy: UUID? = null,
     var lastUpdatedAt: Long = System.currentTimeMillis(),
     var isDirty: Boolean = false,
-    val items: Array<ItemStack?> = arrayOfNulls(size) // Initialize the array based on the size passed above
+    val items: Array<ItemStack?> = arrayOfNulls(size), // Initialize the array based on the size passed above
+    val viewers: MutableSet<UUID> = mutableSetOf()
 ) {
     fun cloneItems(): Array<ItemStack?> = items.copyOf()
 

@@ -9,7 +9,6 @@ redis:
   host: "127.0.0.1"
   port: 6379
   password: ""        # leave empty if no password
-  channel: "sharedvault:updates"   # pub/sub channel for cross-server sync
 
 # -------------------------
 # MySQL (persistent storage)

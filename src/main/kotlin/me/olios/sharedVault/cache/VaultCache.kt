@@ -3,7 +3,7 @@ package me.olios.sharedVault.cache
 import me.olios.sharedVault.vault.VaultState
 import java.util.concurrent.ConcurrentHashMap
 
-class VaultCache {
+object VaultCache {
     private val cache = ConcurrentHashMap<String, VaultState>()
 
     fun getVault(id: String): VaultState? = cache[id]
