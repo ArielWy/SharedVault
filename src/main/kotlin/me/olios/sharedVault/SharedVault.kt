@@ -59,7 +59,8 @@ class SharedVault : JavaPlugin() {
     }
 
     override fun onDisable() {
-        // Plugin shutdown logic
+        vaultService.closeAllVaults() //close all vaults
+        saveDebouncer.forceSaveAll() // push changes to DB
     }
 
     private fun registerCommands() {

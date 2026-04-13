@@ -1,7 +1,10 @@
 package me.olios.sharedVault.vault
 
 import me.olios.sharedVault.cache.VaultCache
+import me.olios.sharedVault.gui.VaultGui
+import me.olios.sharedVault.gui.VaultHolder
 import me.olios.sharedVault.storage.RedisStorage
+import org.bukkit.Bukkit
 
 class VaultManager(
     private val cache: VaultCache,
@@ -28,6 +31,8 @@ class VaultManager(
     }
 
     fun getVaultFromCache(id: String): VaultState? = cache.getVault(id)
+
+    fun getAllVaultsFromCache(): List<VaultState> = cache.getAll()
 
     // used when MySQL/Redis loads data
     fun registerVault(vault: VaultState) {

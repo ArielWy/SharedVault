@@ -2,7 +2,6 @@ package me.olios.sharedVault.storage
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import me.olios.sharedVault.cache.VaultCache
 import me.olios.sharedVault.config.ConfigManager
 import me.olios.sharedVault.serialization.ItemSerializer
 import me.olios.sharedVault.vault.VaultState

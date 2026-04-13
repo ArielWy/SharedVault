@@ -1,13 +1,10 @@
 package me.olios.sharedVault.vault
 
-import me.olios.sharedVault.cache.VaultCache
 import me.olios.sharedVault.gui.VaultGui
-import me.olios.sharedVault.gui.VaultHolder
 import me.olios.sharedVault.storage.RedisStorage
 import me.olios.sharedVault.sync.RedisPublisher
 import me.olios.sharedVault.task.SaveDebouncer
 import org.bukkit.Bukkit
-import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
 
@@ -73,6 +70,22 @@ class VaultService(
             if (player != null) {
                 gui.refreshSlot(player, slot, newItem)
             }
+        }
+    }
+
+    fun closeAllVaults() {
+        for (vault in manager.getAllVaultsFromCache()) {
+            val gui = VaultGui(vault) // Create a temporary view controller
+            val viewersCopy = vault.viewers.toList() // avoid concurrent modification
+
+            for (uuid in viewersCopy) {
+                val player = Bukkit.getPlayer(uuid) ?: continue
+
+                // Close the inventory
+                gui.close(player)
+            }
+
+            vault.viewers.clear()
         }
     }
 }

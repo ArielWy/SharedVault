@@ -18,6 +18,12 @@ class VaultGui(private val state: VaultState) {
         player.openInventory(createInventory())
     }
 
+    fun close(player: Player) {
+        if (player.openInventory.topInventory.holder is VaultHolder) {
+            player.closeInventory()
+        }
+    }
+
     fun refresh(player: Player) {
         val topInventory = player.openInventory.topInventory
         val holder = topInventory.holder

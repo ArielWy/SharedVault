@@ -8,6 +8,8 @@ object VaultCache {
 
     fun getVault(id: String): VaultState? = cache[id]
 
+    fun getAll(): List<VaultState> = cache.values.toList()
+
     fun putVault(vault: VaultState) {
         cache[vault.id] = vault
     }
