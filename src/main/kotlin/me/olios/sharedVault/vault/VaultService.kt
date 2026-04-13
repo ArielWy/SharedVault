@@ -5,6 +5,7 @@ import me.olios.sharedVault.gui.VaultGui
 import me.olios.sharedVault.gui.VaultHolder
 import me.olios.sharedVault.storage.RedisStorage
 import me.olios.sharedVault.sync.RedisPublisher
+import me.olios.sharedVault.task.SaveDebouncer
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -13,11 +14,11 @@ import java.util.UUID
 class VaultService(
     private val manager: VaultManager,
     private val redisStorage: RedisStorage,
-    private val redisPublisher: RedisPublisher) {
+    private val redisPublisher: RedisPublisher,
+    private val saveDebouncer: SaveDebouncer) {
 
     /**
      * Used when an update comes from ANOTHER server via Redis.
-     * don't mark it dirty because it's already saved elsewhere.
      */
     fun handleExternalSlotUpdate(vaultId: String, slot: Int, remoteVersion: Int) {
         val vault = manager.getVaultFromCache(vaultId) ?: return
@@ -60,7 +61,8 @@ class VaultService(
         // notify other servers via Pub/Sub
         redisPublisher.publishSlotUpdate(vaultId, slot, vault.version)
 
-        // FUTURE: saveDebouncer.schedule(vaultId)
+        // run debouncer to save DB
+        saveDebouncer.scheduleSave(vaultId)
     }
 
     private fun refreshViewers(vault: VaultState, slot: Int, newItem: ItemStack?) {

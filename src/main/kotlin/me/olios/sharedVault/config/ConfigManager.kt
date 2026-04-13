@@ -33,7 +33,6 @@ object ConfigManager {
     val redisHost get() = mainConfig.getString("redis.host")!!
     val redisPort get() = mainConfig.getInt("redis.port")
     val redisPassword get() = mainConfig.getString("redis.password")!!
-    val redisChannel get() = mainConfig.getString("redis.channel")!!
 
     // -----------------------------
     // Database
@@ -43,7 +42,8 @@ object ConfigManager {
     val dbName get() = mainConfig.getString("database.name")!!
     val dbUser get() = mainConfig.getString("database.user")!!
     val dbPassword get() = mainConfig.getString("database.password")!!
-    val dbPoolSize get() = mainConfig.getInt("database.pool-size")
+    val dbPoolSize get() = mainConfig.getInt("database.pool-size").coerceIn(2, 30)
+    val dbSaveDelayMs get() = mainConfig.getLong("database.save-delay-ms").coerceAtLeast(2000)
 
     // -----------------------------
     // Vault settings

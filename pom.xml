@@ -84,6 +84,10 @@
             <artifactId>lettuce-core</artifactId>
             <version>7.5.1.RELEASE</version> <!-- Check for the latest version on Maven Central -->
         </dependency>
-
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>7.0.2</version>
+        </dependency>
     </dependencies>
 </project>

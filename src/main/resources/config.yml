@@ -20,6 +20,7 @@ database:
   user: "root"
   password: ""
   pool-size: 10
+  save-delay-ms: 2000
 
 # -------------------------
 # Vault Settings

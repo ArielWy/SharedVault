@@ -6,9 +6,11 @@ import me.olios.sharedVault.commands.VaultCommand
 import me.olios.sharedVault.config.ConfigManager
 import me.olios.sharedVault.config.MessagesConfig
 import me.olios.sharedVault.gui.GuiListener
+import me.olios.sharedVault.storage.MySqlStorage
 import me.olios.sharedVault.storage.RedisStorage
 import me.olios.sharedVault.sync.RedisPublisher
 import me.olios.sharedVault.sync.RedisSubscriber
+import me.olios.sharedVault.task.SaveDebouncer
 import me.olios.sharedVault.vault.VaultManager
 import me.olios.sharedVault.vault.VaultService
 import org.bukkit.plugin.java.JavaPlugin
@@ -19,6 +21,9 @@ class SharedVault : JavaPlugin() {
     private lateinit var redisStorage: RedisStorage
     private lateinit var redisPublisher: RedisPublisher
     private lateinit var redisSubscriber: RedisSubscriber
+
+    private lateinit var mySqlStorage: MySqlStorage
+    private lateinit var saveDebouncer: SaveDebouncer
 
     private lateinit var vaultCache: VaultCache
     private lateinit var vaultManager: VaultManager
@@ -37,7 +42,12 @@ class SharedVault : JavaPlugin() {
         vaultCache = VaultCache
         vaultManager = VaultManager(vaultCache, redisStorage)
 
-        vaultService = VaultService(vaultManager, redisStorage, redisPublisher)
+        val delayTicks = ConfigManager.dbSaveDelayMs
+        mySqlStorage = MySqlStorage()
+        saveDebouncer = SaveDebouncer(this, vaultManager, mySqlStorage, delayTicks)
+
+
+        vaultService = VaultService(vaultManager, redisStorage, redisPublisher, saveDebouncer)
 
         redisSubscriber = RedisSubscriber(redisClient, vaultService)
         redisSubscriber.subscribe()
