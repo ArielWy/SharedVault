@@ -3,13 +3,16 @@ package me.olios.sharedVault.storage
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
+import me.olios.sharedVault.SharedVault
 import me.olios.sharedVault.serialization.ItemSerializer
 import me.olios.sharedVault.vault.VaultState
+import org.bukkit.Bukkit
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
 
 class RedisStorage(
-    private val client: RedisClient
+    private val client: RedisClient,
+    private val plugin: SharedVault
 ) : StorageService {
 
     private val KEY_PREFIX = "sharedvault:vault:"
@@ -102,5 +105,26 @@ class RedisStorage(
         val data = async.hgetall(key(vaultId)).get()
         val sizeStr = data["size"] ?: return null
         return sizeStr.toIntOrNull()
+    }
+
+    private var isHandlingFailure = false // Class-level variable
+
+    fun handleFatalRedisError() {
+        // Synchronized ensures only one thread can enter this block at a time
+        synchronized(this) {
+            if (isHandlingFailure || !plugin.isEnabled) return
+            isHandlingFailure = true
+        }
+
+        plugin.logger.severe("--------------------------------------------------")
+        plugin.logger.severe("[SharedVault] FATAL ERROR: Redis Connection Lost!")
+        plugin.logger.severe("The plugin requires Redis for synchronization.")
+        plugin.logger.severe("The plugin will now be disabled.")
+        plugin.logger.severe("--------------------------------------------------")
+
+        // Jump to Main Thread to disable
+        Bukkit.getScheduler().runTask(plugin, Runnable {
+            Bukkit.getPluginManager().disablePlugin(plugin)
+        })
     }
 }

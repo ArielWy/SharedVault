@@ -11,7 +11,7 @@ class SaveDebouncer(
     private val plugin: SharedVault,
     private val vaultManager: VaultManager,
     private val mysqlStorage: StorageService,
-    private val delayTicks: Long // e.g., 100 ticks = 5 seconds
+    private val delayMs: Long // e.g., 100 ticks = 5 seconds
 ) {
     // Keeps track of active "pending" saves
     private val pendingSaves = ConcurrentHashMap<String, BukkitTask>()
@@ -19,6 +19,8 @@ class SaveDebouncer(
     fun scheduleSave(vaultId: String) {
         // Cancel existing task for this vault if it exists (reset the timer)
         pendingSaves.remove(vaultId)?.cancel()
+
+        val delayTicks = (delayMs / 1000) * 20 // convert to ticks from Ms
 
         // schedule a new async task
         val task = Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, Runnable {
@@ -31,7 +33,7 @@ class SaveDebouncer(
     private fun executeSave(vaultId: String) {
         val vault = vaultManager.getVaultFromCache(vaultId) ?: return
 
-        // Double-check if it's still dirty
+        // Double check if it's still dirty
         if (!vault.isDirty) return
 
         try {
@@ -42,7 +44,6 @@ class SaveDebouncer(
             plugin.logger.info("Successfully persisted vault $vaultId to MySQL.")
         } catch (e: Exception) {
             plugin.logger.severe("Failed to save vault $vaultId to MySQL: ${e.message}")
-            // Optional: Reschedule a retry
         }
     }
 
@@ -54,6 +55,6 @@ class SaveDebouncer(
         pendingSaves.clear()
 
         // For each vault in cache, if dirty, save synchronously (since server is stopping)
-        // vaultManager.getAllCachedVaults().filter { it.isDirty }.forEach { mysqlStorage.save(it) }
+        vaultManager.getAllVaultsFromCache().filter { it.isDirty }.forEach { mysqlStorage.save(it) }
     }
 }

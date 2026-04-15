@@ -2,13 +2,14 @@ package me.olios.sharedVault.sync
 
 import io.lettuce.core.RedisClient
 import io.lettuce.core.pubsub.RedisPubSubAdapter
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection
 import me.olios.sharedVault.vault.VaultService
 
 class RedisSubscriber(
     private val client: RedisClient,
     private val vaultService: VaultService
 ) {
-    fun subscribe() {
+    fun subscribe(): StatefulRedisPubSubConnection<String, String> {
         val pubSubConnection = client.connectPubSub()
         pubSubConnection.addListener(object : RedisPubSubAdapter<String, String>() {
             override fun message(channel: String, message: String) {
@@ -19,12 +20,19 @@ class RedisSubscriber(
                         val slot = parts[1].toInt()
                         val version = parts[2].toInt()
 
-                        // Tell the service to fetch only this slot from Redis
                         vaultService.handleExternalSlotUpdate(vaultId, slot, version)
                     }
                 }
             }
         })
         pubSubConnection.async().subscribe("vault_updates")
+        return pubSubConnection
     }
+
+
+    fun unsubscribe(pubSubConnection: StatefulRedisPubSubConnection<String, String>) {
+        pubSubConnection.async().unsubscribe("vault_updates")
+        pubSubConnection.close()
+    }
+
 }
