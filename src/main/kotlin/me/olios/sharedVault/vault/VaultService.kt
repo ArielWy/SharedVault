@@ -1,6 +1,8 @@
 package me.olios.sharedVault.vault
 
+import me.olios.sharedVault.SharedVault
 import me.olios.sharedVault.gui.VaultGui
+import me.olios.sharedVault.storage.MySqlStorage
 import me.olios.sharedVault.storage.RedisStorage
 import me.olios.sharedVault.sync.RedisPublisher
 import me.olios.sharedVault.task.SaveDebouncer
@@ -38,7 +40,7 @@ class VaultService(
      * Called by the GuiListener whenever a slot is modified.
      */
     fun handleSlotUpdate(vaultId: String, slot: Int, newItem: ItemStack?, updater: UUID) {
-        val vault = manager.getOrLoadVault(vaultId)
+        val vault: VaultState = manager.getVaultFromCache(vaultId) ?: return
 
         // Only update if the item actually changed
         if (vault.items[slot] == newItem) return

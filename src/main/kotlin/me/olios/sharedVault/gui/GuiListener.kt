@@ -61,14 +61,14 @@ class GuiListener(
     @EventHandler
     fun onInventoryOpen(event: InventoryOpenEvent) {
         val holder = event.inventory.holder as? VaultHolder ?: return
-        val vault = manager.getOrLoadVault(holder.vaultId)
-        vault.viewers.add(event.player.uniqueId)
+        val vault = manager.getVaultFromCache(holder.vaultId)
+        vault?.viewers?.add(event.player.uniqueId)
     }
 
     @EventHandler
     fun onInventoryClose(event: InventoryCloseEvent) {
         val holder = event.inventory.holder as? VaultHolder ?: return
-        val vault = manager.getOrLoadVault(holder.vaultId)
-        vault.viewers.remove(event.player.uniqueId)
+        val vault = manager.getVaultFromCache(holder.vaultId)
+        vault?.viewers?.remove(event.player.uniqueId)
     }
 }

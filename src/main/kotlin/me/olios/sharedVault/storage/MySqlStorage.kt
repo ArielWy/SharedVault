@@ -157,6 +157,49 @@ class MySqlStorage(
         return null
     }
 
+    fun loadVersion(vaultId: String): Int? {
+        try {
+            dataSource.connection.use { conn ->
+                val stmt = conn.prepareStatement(
+                    "SELECT version FROM shared_vaults WHERE vault_id = ?"
+                )
+                stmt.setString(1, vaultId)
+
+                val rs = stmt.executeQuery()
+                if (rs.next()) {
+                    return rs.getInt("version")
+                }
+            }
+        } catch (e: SQLException) {
+            plugin.logger.severe("[SharedVault] SQL error while loading version for vault '$vaultId': ${e.message}")
+            return null
+        }
+
+        return null
+    }
+
+    fun getAllVaultIds(): List<String> {
+        try {
+            val result = mutableListOf<String>()
+
+            dataSource.connection.use { conn ->
+                val stmt = conn.prepareStatement("SELECT vault_id FROM shared_vaults")
+                val rs = stmt.executeQuery()
+
+                while (rs.next()) {
+                    result.add(rs.getString("vault_id"))
+                }
+            }
+
+            return result
+        } catch (e: SQLException) {
+            plugin.logger.severe("[SharedVault] SQL error while loading vault ID's: ${e.message}")
+        }
+        return emptyList()
+    }
+
+
+
     fun close() {
         dataSource.close()
     }

@@ -1,9 +1,7 @@
 package me.olios.sharedVault.config
 
 import me.olios.sharedVault.SharedVault
-import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.configuration.file.FileConfiguration
-import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 
 object ConfigManager {
@@ -48,6 +46,7 @@ object ConfigManager {
     // -----------------------------
     // Vault settings
     // -----------------------------
+    val defaultName get() = mainConfig.getString("vault.default-name")!!
     val allowedSizes get() = mainConfig.getIntegerList("vault.allowed-sizes")
     val autosaveInterval get() = mainConfig.getInt("vault.autosave-interval")
     val lockTimeout get() = mainConfig.getLong("vault.lock-timeout")

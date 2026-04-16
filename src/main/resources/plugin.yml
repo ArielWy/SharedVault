@@ -10,13 +10,28 @@ authors: [ olios ]
 commands:
   vault:
     aliases:
-      - sharedvault
-      - sv
-    description: open the shared vault GUI
+      - openvault
+      - -ov
+    description: open the vault
     usage: /vault <ID>
     permission: SharedVault.use
+  sharedvault:
+    aliases: [ sv ]
+    description: Main administrative command for SharedVault.
+    usage: /sv <create|edit|delete|info|list>
+    permission: SharedVault.admin
+
 
 permissions:
   SharedVault.use:
-    description: Allows the player to use the /vault command
+    description: Allows the player to use the /vault command.
     default: true
+  SharedVault.admin:
+    description: Overall permission for administrative vault management.
+    default: op
+    children:
+      SharedVault.admin.create: true
+      SharedVault.admin.edit: true
+      SharedVault.admin.delete: true
+      SharedVault.admin.info: true
+      SharedVault.admin.list: true

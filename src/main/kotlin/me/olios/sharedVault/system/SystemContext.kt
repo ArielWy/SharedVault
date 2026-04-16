@@ -49,12 +49,13 @@ class SystemContext(
         redisPublisher = RedisPublisher(redisClient)
         redisStorage = RedisStorage(redisClient, plugin)
 
-        // --- Vault ---
-        vaultCache = VaultCache
-        vaultManager = VaultManager(vaultCache, redisStorage)
-
         // --- MySQL ---
         mySqlStorage = MySqlStorage(plugin)
+
+        // --- Vault ---
+        vaultCache = VaultCache
+        vaultManager = VaultManager(vaultCache, redisStorage, mySqlStorage, plugin)
+        vaultManager.loadAllVaultIds()
 
         // --- Debouncer ---
         saveDebouncer = SaveDebouncer(

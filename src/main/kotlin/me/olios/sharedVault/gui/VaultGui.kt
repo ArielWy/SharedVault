@@ -42,4 +42,12 @@ class VaultGui(private val state: VaultState) {
             topInventory.setItem(slot, item)
         }
     }
+
+    fun refreshVault(player: Player) {
+        val topInventory = player.openInventory.topInventory
+        val holder = topInventory.holder as? VaultHolder ?: return
+
+        close(player)
+        open(player)
+    }
 }

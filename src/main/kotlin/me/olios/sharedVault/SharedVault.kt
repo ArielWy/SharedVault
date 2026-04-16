@@ -3,6 +3,10 @@ package me.olios.sharedVault
 import io.lettuce.core.RedisClient
 import me.olios.sharedVault.cache.VaultCache
 import me.olios.sharedVault.commands.VaultCommand
+import me.olios.sharedVault.commands.sharedvault.SharedVaultCommand
+import me.olios.sharedVault.commands.sharedvault.SubCommand
+import me.olios.sharedVault.commands.sharedvault.SubCommandManager
+import me.olios.sharedVault.commands.sharedvault.subcommands.CreateCommand
 import me.olios.sharedVault.config.ConfigManager
 import me.olios.sharedVault.config.MessagesConfig
 import me.olios.sharedVault.gui.GuiListener
@@ -30,7 +34,10 @@ class SharedVault : JavaPlugin() {
 
     private fun registerCommands() {
         val sys = system ?: return
-        getCommand("vault")?.setExecutor(VaultCommand(sys.vaultManager))
+        getCommand("vault")?.setExecutor(VaultCommand(sys.vaultManager, sys.mySqlStorage))
+        getCommand("sharedvault")?.setExecutor(SharedVaultCommand())
+
+        SubCommandManager.registerCommand("create", CreateCommand(sys.vaultManager))
     }
 
     private fun registerListeners() {

@@ -1,6 +1,9 @@
 package me.olios.sharedVault.storage
 
+import io.lettuce.core.ClientListArgs.Builder.ids
 import io.lettuce.core.RedisClient
+import io.lettuce.core.ScanArgs
+import io.lettuce.core.ScanCursor
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
 import me.olios.sharedVault.SharedVault
@@ -126,5 +129,25 @@ class RedisStorage(
         Bukkit.getScheduler().runTask(plugin, Runnable {
             Bukkit.getPluginManager().disablePlugin(plugin)
         })
+    }
+
+    fun getAllVaultIds(): Set<String> {
+        val ids = mutableSetOf<String>()
+        val sync = connection.sync()
+        var cursor = ScanCursor.INITIAL
+
+        val pattern = "$KEY_PREFIX*"
+
+        do {
+            // scan for all keys
+            val scan = sync.scan(cursor, ScanArgs.Builder.matches(pattern))
+            cursor = scan
+
+            for (key in scan.keys) {
+                ids.add(key.removePrefix(KEY_PREFIX))
+            }
+        } while (!cursor.isFinished) // isFinished checks if cursor is "0"
+
+        return ids
     }
 }

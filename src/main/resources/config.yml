@@ -26,6 +26,7 @@ database:
 # Vault Settings
 # -------------------------
 vault:
+  default-name: "global"
   allowed-sizes: [9, 18, 27, 36, 45, 54]
   autosave-interval: 300   # seconds (5 minutes)
   lock-timeout: 5000       # ms - how long a vault lock lasts before force release
