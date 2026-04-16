@@ -7,6 +7,7 @@ import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
+import java.io.InputStreamReader
 
 object MessagesConfig {
     private lateinit var messages: YamlConfiguration
@@ -20,6 +21,22 @@ object MessagesConfig {
         }
         messages = YamlConfiguration.loadConfiguration(file)
     }
+
+    fun reload(plugin: SharedVault) {
+        val file = File(plugin.dataFolder, "messages.yml")
+
+        if (!file.exists()) {
+            plugin.saveResource("messages.yml", false)
+        }
+
+        messages = YamlConfiguration.loadConfiguration(file)
+
+        plugin.getResource("messages.yml")?.let { stream ->
+            val defaults = YamlConfiguration.loadConfiguration(InputStreamReader(stream))
+            messages.setDefaults(defaults)
+        }
+    }
+
 
     fun get(path: String, placeholders: Map<String, String> = emptyMap()): Component {
         val raw = messages.getString(path) ?: "<red>Missing message: $path"

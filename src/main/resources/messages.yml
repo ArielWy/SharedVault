@@ -15,6 +15,10 @@ vault:
   size_invalid: "<red>Vault size must be <white>9, 18, 27, 36, 45, or 54<red>." # USED
 
 admin:
+  # Reload Subcommand
+  reload_config: "<green>Configuration files reloaded successfully!"
+  reload_all: "<green>Plugin and database systems have been fully reloaded."
+
   # Create Subcommand
   create_usage: "<red>Usage: <yellow>/sv create <vaultId> [size]"
   already_exists: "<red>Error: A vault with the ID <white>%VAULT%</white> already exists!"

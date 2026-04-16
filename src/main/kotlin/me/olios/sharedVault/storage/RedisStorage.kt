@@ -112,6 +112,10 @@ class RedisStorage(
 
     private var isHandlingFailure = false // Class-level variable
 
+    fun restart() {
+        isHandlingFailure = true
+    }
+
     fun handleFatalRedisError() {
         // Synchronized ensures only one thread can enter this block at a time
         synchronized(this) {
