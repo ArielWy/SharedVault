@@ -3,6 +3,7 @@ package me.olios.sharedVault.system
 import io.lettuce.core.RedisClient
 import io.lettuce.core.event.connection.DisconnectedEvent
 import io.lettuce.core.pubsub.StatefulRedisPubSubConnection
+import io.lettuce.core.resource.ClientResources
 import io.lettuce.core.resource.DefaultClientResources
 import me.olios.sharedVault.SharedVault
 import me.olios.sharedVault.cache.VaultCache
@@ -15,11 +16,13 @@ import me.olios.sharedVault.task.SaveDebouncer
 import me.olios.sharedVault.vault.VaultManager
 import me.olios.sharedVault.vault.VaultService
 import org.bukkit.Bukkit
+import org.bukkit.event.HandlerList
 
 class SystemContext(
     private val plugin: SharedVault
 ) {
 
+    lateinit var resources: ClientResources
     lateinit var redisClient: RedisClient
     lateinit var redisStorage: RedisStorage
     lateinit var redisPublisher: RedisPublisher
@@ -36,7 +39,7 @@ class SystemContext(
     fun start() {
 
         // --- Redis ---
-        val resources = DefaultClientResources.create()
+        resources = DefaultClientResources.create()
 
         resources.eventBus().get().subscribe { event ->
             if (event is DisconnectedEvent) {
@@ -54,7 +57,7 @@ class SystemContext(
 
         // --- Vault ---
         vaultCache = VaultCache
-        vaultManager = VaultManager(vaultCache, redisStorage, mySqlStorage, plugin)
+        vaultManager = VaultManager(vaultCache, redisStorage, mySqlStorage, redisPublisher, plugin)
         vaultManager.loadAllVaultIds()
 
         // --- Debouncer ---
@@ -70,26 +73,22 @@ class SystemContext(
             vaultManager,
             redisStorage,
             redisPublisher,
-            saveDebouncer
+            saveDebouncer,
+            plugin
         )
 
         // --- Subscriber ---
-        redisSubscriber = RedisSubscriber(redisClient, vaultService)
+        redisSubscriber = RedisSubscriber(redisClient, vaultService, plugin)
         subscribe = redisSubscriber.subscribe()
     }
 
     fun stop() {
         plugin.logger.info("Initiating system shutdown...")
 
-        // 1. Force Save
-        try {
-            plugin.logger.info("Forcing final save of all cached vaults...")
-            saveDebouncer.forceSaveAll()
-        } catch (e: Exception) {
-            plugin.logger.warning("Failed to complete final save: ${e.message}")
-        }
+        Bukkit.getScheduler().cancelTasks(plugin)
+        HandlerList.unregisterAll(plugin)
 
-        // 2. Close Inventories
+        // Close Inventories
         try {
             plugin.logger.info("Closing all active vault inventories...")
             vaultService.closeAllVaults()
@@ -97,7 +96,15 @@ class SystemContext(
             plugin.logger.warning("Failed to close all vault inventories: ${e.message}")
         }
 
-        // 3. Unsubscribe Redis
+        // Force Save
+        try {
+            plugin.logger.info("Forcing final save of all cached vaults...")
+            saveDebouncer.forceSaveAll()
+        } catch (e: Exception) {
+            plugin.logger.warning("Failed to complete final save: ${e.message}")
+        }
+
+        // Unsubscribe Redis
         try {
             plugin.logger.info("Unsubscribing from Redis channels...")
             redisSubscriber.unsubscribe(subscribe)
@@ -105,7 +112,7 @@ class SystemContext(
             plugin.logger.warning("Failed to unsubscribe from Redis: ${e.message}")
         }
 
-        // 4. Shutdown Redis Client
+        // Shutdown Redis Client
         try {
             plugin.logger.info("Shutting down Redis client...")
             redisClient.shutdown()
@@ -114,7 +121,15 @@ class SystemContext(
             plugin.logger.warning("Redis client shutdown encountered an error (likely ClassLoader cleanup): ${e.message}")
         }
 
-        // 5. Close MySQL
+        // Shutdown resources
+        try {
+            plugin.logger.info("Shutting down redis client resources...")
+            resources.shutdown()
+        } catch (e: Exception) {
+            plugin.logger.warning("Redis client resource shutdown encountered an error: ${e.message}")
+        }
+
+        // Close MySQL
         try {
             plugin.logger.info("Closing MySQL connection pool...")
             mySqlStorage.close()

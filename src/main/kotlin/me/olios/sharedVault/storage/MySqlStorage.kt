@@ -198,6 +198,33 @@ class MySqlStorage(
         return emptyList()
     }
 
+    override fun delete(vaultId: String) {
+        try {
+            dataSource.connection.use { conn ->
+                val stmt = conn.prepareStatement("""
+                DELETE FROM shared_vaults
+                WHERE vault_id = ?
+            """)
+                stmt.setString(1, vaultId)
+                stmt.executeUpdate()
+            }
+        } catch (e: SQLException) {
+            // log error
+            if (plugin.isEnabled) {
+                plugin.logger.severe("--------------------------------------------------")
+                plugin.logger.severe("[SharedVault] FATAL ERROR: SQL Connection Lost!")
+                plugin.logger.severe("The plugin cannot delete data and will be disabled.")
+                plugin.logger.severe("--------------------------------------------------")
+
+                // close the datasource immediately
+                close()
+
+                // Disable the plugin
+                disable()
+            }
+            throw e
+        }
+    }
 
 
     fun close() {

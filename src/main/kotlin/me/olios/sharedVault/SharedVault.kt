@@ -7,6 +7,7 @@ import me.olios.sharedVault.commands.sharedvault.SharedVaultCommand
 import me.olios.sharedVault.commands.sharedvault.SubCommand
 import me.olios.sharedVault.commands.sharedvault.SubCommandManager
 import me.olios.sharedVault.commands.sharedvault.subcommands.CreateCommand
+import me.olios.sharedVault.commands.sharedvault.subcommands.DeleteCommand
 import me.olios.sharedVault.commands.sharedvault.subcommands.ReloadCommand
 import me.olios.sharedVault.config.ConfigManager
 import me.olios.sharedVault.config.MessagesConfig
@@ -40,6 +41,8 @@ class SharedVault : JavaPlugin() {
 
         SubCommandManager.registerCommand("create", CreateCommand(sys.vaultManager))
         SubCommandManager.registerCommand("reload", ReloadCommand(sys.redisStorage, this))
+        SubCommandManager.registerCommand("delete", DeleteCommand(sys.vaultManager, sys.vaultService))
+
     }
 
     private fun registerListeners() {

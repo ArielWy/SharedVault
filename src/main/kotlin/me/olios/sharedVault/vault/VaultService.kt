@@ -14,7 +14,9 @@ class VaultService(
     private val manager: VaultManager,
     private val redisStorage: RedisStorage,
     private val redisPublisher: RedisPublisher,
-    private val saveDebouncer: SaveDebouncer) {
+    private val saveDebouncer: SaveDebouncer,
+    private val plugin: SharedVault
+    ) {
 
     /**
      * Used when an update comes from ANOTHER server via Redis.
@@ -22,8 +24,12 @@ class VaultService(
     fun handleExternalSlotUpdate(vaultId: String, slot: Int, remoteVersion: Int) {
         val vault = manager.getVaultFromCache(vaultId) ?: return
 
+        // plugin.logger.info("remoteVersion: $remoteVersion, vaultVersion: ${vault.version}")
+
         // only update if the remote version is newer
         if (remoteVersion <= vault.version) return
+
+        // plugin.logger.info("EXTERNAL | Updated slot: $slot, remoteVersion: $remoteVersion")
 
         // fetch only the specific slot from Redis
         val newItem = redisStorage.loadSingleSlot(vaultId, slot)
@@ -34,6 +40,11 @@ class VaultService(
 
         // Refresh GUI for all active viewers on THIS server
         refreshViewers(vault, slot, newItem)
+    }
+
+    fun handleExternalVaultDelete(vaultId: String) {
+        closeVault(manager.getVaultFromCache(vaultId) ?: return)
+        manager.removeVaultFromCache(vaultId)
     }
 
     /**
@@ -75,6 +86,10 @@ class VaultService(
         }
     }
 
+    fun registerExistingId(vaultId: String) {
+        manager.addVaultId(vaultId)
+    }
+
     fun closeAllVaults() {
         for (vault in manager.getAllVaultsFromCache()) {
             val gui = VaultGui(vault) // Create a temporary view controller
@@ -88,6 +103,18 @@ class VaultService(
             }
 
             vault.viewers.clear()
+        }
+    }
+
+    fun closeVault(vault: VaultState) {
+        val gui = VaultGui(vault) // Create a temporary view controller
+        val viewersCopy = vault.viewers.toList() // avoid concurrent modification
+
+        for (uuid in viewersCopy) {
+            val player = Bukkit.getPlayer(uuid) ?: continue
+
+            // Close the inventory
+            gui.close(player)
         }
     }
 }

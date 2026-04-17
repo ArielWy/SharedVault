@@ -154,4 +154,9 @@ class RedisStorage(
 
         return ids
     }
+
+    override fun delete(vaultId: String) {
+        async.del(key(vaultId))
+    }
+
 }

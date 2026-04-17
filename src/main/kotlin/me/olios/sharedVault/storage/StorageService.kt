@@ -13,4 +13,9 @@ interface StorageService {
      * Persists the entire vault state to the storage source.
      */
     fun save(vault: VaultState)
+
+    /**
+     * delete the entire vault state to the storage source.
+     */
+    fun delete(vaultId: String)
 }

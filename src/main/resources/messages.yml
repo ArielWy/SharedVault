@@ -30,6 +30,7 @@ admin:
   delete_usage: "<red>Usage: <yellow>/sv delete <vaultId>"
   delete_not_found: "<red>Error: Vault <white>%VAULT%</white> does not exist."
   delete_success: "<green>Vault <white>%VAULT%</white> has been deleted."
+  delete_error: "<red>An internal error occurred while deleting the vault."
 
   # List Subcommand
   list_header: "<gray>--- [ <blue>Shared Vaults</blue> ] ---"

@@ -5,14 +5,19 @@ import me.olios.sharedVault.cache.VaultCache
 import me.olios.sharedVault.gui.VaultGui
 import me.olios.sharedVault.storage.MySqlStorage
 import me.olios.sharedVault.storage.RedisStorage
+import me.olios.sharedVault.sync.RedisPublisher
 import org.bukkit.Bukkit
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class VaultManager(
     private val cache: VaultCache,
     private val redisStorage: RedisStorage,
     private val mySqlStorage: MySqlStorage,
+    private val redisPublisher: RedisPublisher,
     private val plugin: SharedVault
 ) {
     private val allVaultIds = mutableSetOf<String>()
@@ -30,6 +35,9 @@ class VaultManager(
             val redisVault = redisStorage.load(id)
 
             if (redisVault != null) {
+                // put in cache
+                cache.putVault(redisVault)
+
                 // Open vault for player immediately on Main Thread
                 Bukkit.getScheduler().runTask(plugin, Runnable { callback(redisVault) })
 
@@ -53,6 +61,7 @@ class VaultManager(
     fun getVaultFromCache(id: String): VaultState? = cache.getVault(id)
 
     fun getAllVaultsFromCache(): List<VaultState> = cache.getAll()
+    fun removeVaultFromCache(id: String) {cache.removeVault(id)}
 
     // used when MySQL/Redis loads data
     fun registerVault(vault: VaultState) {
@@ -71,8 +80,39 @@ class VaultManager(
         cache.putVault(newVault)
         allVaultIds.add(id)
         redisStorage.save(newVault)
+        redisPublisher.publishCreate(id)
         return newVault
     }
+
+    fun deleteVault(id: String, callback: (Boolean) -> Unit) {
+        // remove from cache immediately
+        cache.removeVault(id)
+
+        synchronized(allVaultIds) {
+            allVaultIds.remove(id)
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
+            try {
+                redisStorage.delete(id)
+                mySqlStorage.delete(id)
+                redisPublisher.publishDelete(id)
+
+                plugin.logger.info("Successfully deleted vault: $id")
+
+                Bukkit.getScheduler().runTask(plugin, Runnable {
+                    callback(true)
+                })
+            } catch (e: Exception) {
+                plugin.logger.severe("Error while deleting vault $id: ${e.message}")
+
+                Bukkit.getScheduler().runTask(plugin, Runnable {
+                    callback(false)
+                })
+            }
+        })
+    }
+
 
     fun loadAllVaultIds(): CompletableFuture<Set<String>> {
         val future = CompletableFuture<Set<String>>()
